@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Task payloads are intentionally dynamic (shaped per task by the service
+// layer), so `any` is used deliberately in this deterministic fallback.
 import type {
   AIProvider,
   CompletionRequest,
@@ -25,9 +28,19 @@ const STOPWORDS = new Set([
 ]);
 
 function splitSentences(text: string): string[] {
-  return (text.match(/[^.!?\n]+[.!?]+|\S[^.!?\n]*/g) ?? [])
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
+  // Split on sentence-ending punctuation only when followed by whitespace and
+  // an opening/uppercase character. This avoids breaking on decimals like
+  // "$4.2 million" or "18.5%". Newlines are treated as hard boundaries.
+  const out: string[] = [];
+  for (const line of text.split(/\n+/)) {
+    const norm = line.replace(/[ \t]+/g, " ").trim();
+    if (!norm) continue;
+    for (const part of norm.split(/(?<=[.!?])\s+(?=["'(\[]?[A-Z])/)) {
+      const s = part.trim();
+      if (s) out.push(s);
+    }
+  }
+  return out;
 }
 
 function keywords(text: string): Map<string, number> {
@@ -69,6 +82,11 @@ function pick<T>(arr: T[], seed: number): T {
 
 function toBullet(sentence: string, seed: number): string {
   let s = sentence.trim().replace(/^[-•*]\s*/, "").replace(/[.]+$/, "");
+  // Strip weak lead-ins so we can lead with a strong action verb instead.
+  s = s.replace(
+    /^(worked on|helped with|helped to|responsible for|assisted with|involved in|tasked with|participated in)\s+/i,
+    "",
+  );
   if (!s) return s;
   const startsWithVerb = ACTION_VERBS.some((v) =>
     s.toLowerCase().startsWith(v.toLowerCase()),
@@ -83,8 +101,14 @@ function toBullet(sentence: string, seed: number): string {
 }
 
 function generateBullets(description: string, count = 3): string[] {
-  const sentences = splitSentences(description).filter((s) => s.length > 4);
-  const bullets = sentences.map((s, i) => toBullet(s, i + s.length));
+  // Split into clauses on sentence/semicolon boundaries regardless of case so
+  // each distinct statement becomes its own bullet.
+  const clauses = description
+    .split(/(?<=[.!?;])\s+/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 4);
+  const source = clauses.length ? clauses : splitSentences(description);
+  const bullets = source.map((s, i) => toBullet(s, i + s.length));
   return bullets.slice(0, count);
 }
 

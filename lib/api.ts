@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { ZodError, type ZodSchema } from "zod";
+import { ZodError, type ZodTypeAny, type z } from "zod";
 import { auth } from "@/auth";
 
 export class ApiError extends Error {
@@ -18,10 +18,10 @@ export async function requireApiUser(): Promise<string> {
   return session.user.id;
 }
 
-export async function parseBody<T>(
+export async function parseBody<S extends ZodTypeAny>(
   req: Request,
-  schema: ZodSchema<T>,
-): Promise<T> {
+  schema: S,
+): Promise<z.infer<S>> {
   let raw: unknown;
   try {
     raw = await req.json();
