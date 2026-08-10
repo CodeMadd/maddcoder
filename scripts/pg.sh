@@ -4,6 +4,14 @@
 # or sudo is required at runtime. Safe to run repeatedly (idempotent).
 set -euo pipefail
 
+# Auto-detect the installed PostgreSQL bin directory (highest version).
+if [ -z "${PG_BIN:-}" ]; then
+  if command -v pg_ctl >/dev/null 2>&1; then
+    PG_BIN="$(dirname "$(command -v pg_ctl)")"
+  else
+    PG_BIN="$(ls -d /usr/lib/postgresql/*/bin 2>/dev/null | sort -V | tail -1)"
+  fi
+fi
 PG_BIN="${PG_BIN:-/usr/lib/postgresql/16/bin}"
 PGDATA="${PGDATA:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.pgdata}"
 PGPORT="${PGPORT:-5432}"
