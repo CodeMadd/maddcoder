@@ -7,6 +7,7 @@ import {
   Sparkles,
   ShieldCheck,
   Zap,
+  Play,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -64,6 +65,14 @@ export default function LandingPage() {
                 className={buttonVariants({ variant: "outline", size: "lg" })}
               >
                 Summarize a Document
+              </Link>
+            </div>
+            <div className="mt-4">
+              <Link
+                href="/demo"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+              >
+                <Play className="size-3.5" /> Or explore the live demo — no signup
               </Link>
             </div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-muted-foreground">
