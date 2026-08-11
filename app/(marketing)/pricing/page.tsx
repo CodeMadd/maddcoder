@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, CreditCard } from "lucide-react";
 import { PRICING } from "@/lib/plans";
 import { buttonVariants } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { getSessionUser } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "Pricing",
@@ -12,7 +13,15 @@ export const metadata: Metadata = {
     "Simple, transparent pricing for CareerAI. Start free, upgrade to Pro or Business anytime.",
 };
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const user = await getSessionUser();
+
+  function ctaHref(planId: string) {
+    if (planId === "FREE") return user ? "/dashboard" : "/register";
+    const target = `/dashboard/billing/checkout?plan=${planId}`;
+    return user ? target : `/register?next=${encodeURIComponent(target)}`;
+  }
+
   return (
     <div className="container py-20">
       <div className="mx-auto max-w-2xl text-center">
@@ -55,7 +64,7 @@ export default function PricingPage() {
               ))}
             </ul>
             <Link
-              href="/register"
+              href={ctaHref(tier.id)}
               className={cn(
                 "mt-8",
                 buttonVariants({
@@ -63,14 +72,21 @@ export default function PricingPage() {
                 }),
               )}
             >
-              {tier.cta}
+              {tier.id === "FREE" ? (
+                tier.cta
+              ) : (
+                <>
+                  <CreditCard className="size-4" /> Choose payment method
+                </>
+              )}
             </Link>
           </div>
         ))}
       </div>
       <p className="mx-auto mt-10 max-w-xl text-center text-xs text-muted-foreground">
-        Payments use a placeholder integration in this demo. The architecture is
-        ready for Stripe or another provider to be added later.
+        Payments use a placeholder integration in this demo — no real charge is
+        made and card details are never stored. The architecture is ready for
+        Stripe or another provider to be added later.
       </p>
     </div>
   );

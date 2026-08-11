@@ -3,6 +3,7 @@ import { requireUser } from "@/lib/session";
 import { getUsageSummary } from "@/lib/usage";
 import { planLabel, PLAN_LIMITS } from "@/lib/plans";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { CreditCard } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -70,8 +71,11 @@ export default async function UsagePage() {
             {PLAN_LIMITS.PRO.documentsPerMonth} document summaries per month,
             unlimited resumes, ATS analysis, and job matching.
           </p>
-          <Link href="/pricing" className={buttonVariants({ variant: "gradient" })}>
-            Upgrade plan
+          <Link
+            href="/dashboard/billing/checkout?plan=PRO"
+            className={buttonVariants({ variant: "gradient" })}
+          >
+            <CreditCard className="size-4" /> Upgrade plan
           </Link>
         </CardContent>
       </Card>
